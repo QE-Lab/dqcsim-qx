@@ -17,6 +17,10 @@ FetchContent_MakeAvailable(dqcsim)
 # Include QX.
 include(cmake/qx.cmake)
 
+# Use C++11.
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 # Main operator executable.
 add_executable(
     dqcsbeqx
