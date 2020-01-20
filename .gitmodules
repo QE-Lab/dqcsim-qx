@@ -1,0 +1,3 @@
+[submodule "qx-simulator"]
+	path = qx-simulator
+	url = https://github.com/QE-Lab/qx-simulator.git
