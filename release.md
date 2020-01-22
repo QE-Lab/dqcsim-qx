@@ -51,3 +51,6 @@ While we were at it, we had to fix a couple other wheel-related stuff though
    `py36-none-manylinux2010_x86_64`. So, to be able to install this package on
    various different Python versions, we need to make identical wheels with
    slightly different filenames.
+ - We need to put sleeps in between the generation of aforementioned identical
+   wheels to make their hashes different, otherwise PyPi rejects the identical
+   file contents.

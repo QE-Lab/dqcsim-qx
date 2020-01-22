@@ -42,7 +42,10 @@ ENV DQCSIM_INC /opt/python/cp36-cp36m/include
 ADD . .
 ENTRYPOINT ["bash", "-c", "\
     ${PYBIN}/python3 setup.py bdist_wheel && \
-    LD_LIBRARY_PATH=/opt/python/cp36-cp36m/lib AUDITWHEEL_MOD_PYVER=py35 ${PYBIN}/python3 -m auditwheel repair -w /io/dist target/python/dist/*.whl && \
-    LD_LIBRARY_PATH=/opt/python/cp36-cp36m/lib AUDITWHEEL_MOD_PYVER=py36 ${PYBIN}/python3 -m auditwheel repair -w /io/dist target/python/dist/*.whl && \
-    LD_LIBRARY_PATH=/opt/python/cp36-cp36m/lib AUDITWHEEL_MOD_PYVER=py37 ${PYBIN}/python3 -m auditwheel repair -w /io/dist target/python/dist/*.whl && \
-    LD_LIBRARY_PATH=/opt/python/cp36-cp36m/lib AUDITWHEEL_MOD_PYVER=py38 ${PYBIN}/python3 -m auditwheel repair -w /io/dist target/python/dist/*.whl"]
+    LD_LIBRARY_PATH=/opt/python/cp36-cp36m/lib AUDITWHEEL_MOD_PYVER=cp35 ${PYBIN}/python3 -m auditwheel repair -w /io/dist target/python/dist/*.whl && \
+    sleep 2 && \
+    LD_LIBRARY_PATH=/opt/python/cp36-cp36m/lib AUDITWHEEL_MOD_PYVER=cp36 ${PYBIN}/python3 -m auditwheel repair -w /io/dist target/python/dist/*.whl && \
+    sleep 2 && \
+    LD_LIBRARY_PATH=/opt/python/cp36-cp36m/lib AUDITWHEEL_MOD_PYVER=cp37 ${PYBIN}/python3 -m auditwheel repair -w /io/dist target/python/dist/*.whl && \
+    sleep 2 && \
+    LD_LIBRARY_PATH=/opt/python/cp36-cp36m/lib AUDITWHEEL_MOD_PYVER=cp38 ${PYBIN}/python3 -m auditwheel repair -w /io/dist target/python/dist/*.whl"]
