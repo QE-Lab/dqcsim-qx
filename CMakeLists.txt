@@ -30,4 +30,5 @@ target_include_directories(
     dqcsbeqx PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
+target_link_options(dqcsbeqx PUBLIC -lrt)
 target_link_libraries(dqcsbeqx dqcsim qx)
