@@ -1,4 +1,4 @@
-ARG MANYLINUX=2014
+ARG MANYLINUX=2010
 FROM quay.io/pypa/manylinux${MANYLINUX}_x86_64
 
 ARG PYTHON_VERSION=36
@@ -8,6 +8,10 @@ RUN curl -L https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.1
 ${PYBIN}/pip3 install -U pip auditwheel==3.0.0 dqcsim && \
 echo "214a215" > auditwheel.patch && \
 echo ">         remove_platforms = list(remove_platforms)" >> auditwheel.patch && \
+echo "225a227,229" >> auditwheel.patch && \
+echo ">     mod_pyver = os.environ.get('AUDITWHEEL_MOD_PYVER', None)" >> auditwheel.patch && \
+echo ">     if mod_pyver:" >> auditwheel.patch && \
+echo ">         fparts['pyver'] = mod_pyver" >> auditwheel.patch && \
 patch /opt/_internal/cpython-3.6.10/lib/python3.6/site-packages/auditwheel/wheeltools.py auditwheel.patch && \
 echo '50c50,51' > auditwheel.patch && \
 echo '<          "libgthread-2.0.so.0", "libglib-2.0.so.0", "libresolv.so.2"' >> auditwheel.patch && \
@@ -20,10 +24,25 @@ echo '---' >> auditwheel.patch && \
 echo '>          "libgthread-2.0.so.0", "libglib-2.0.so.0", "libresolv.so.2",' >> auditwheel.patch && \
 echo '>        "libdqcsim.so"' >> auditwheel.patch && \
 patch /opt/_internal/cpython-3.6.10/lib/python3.6/site-packages/auditwheel/policy/policy.json auditwheel.patch && \
-yum install flex -y
-
+echo '74a75,80' > auditwheel.patch && \
+echo ">             elif pkg_root.endswith('.data'):" >> auditwheel.patch && \
+echo '>                 # If this is a file in the .data section of the wheel, using' >> auditwheel.patch && \
+echo '>                 # .libs will not work. In order to not make assumptions about' >> auditwheel.patch && \
+echo '>                 # the data dir we place the libs in a subdir of where the' >> auditwheel.patch && \
+echo '>                 # binary resides, named `<binary>.libs`.' >> auditwheel.patch && \
+echo ">                 dest_dir = pjoin(fn + '.libs')" >> auditwheel.patch && \
+patch /opt/_internal/cpython-3.6.10/lib/python3.6/site-packages/auditwheel/repair.py auditwheel.patch && \
+mkdir -p flex && curl -L https://github.com/westes/flex/files/981163/flex-2.6.4.tar.gz | tar xz -C /flex/ --strip-components=1 && \
+cd flex && ./configure && make -j && make install && cd .. && \
+mkdir -p bison && curl -L ftp://ftp.gnu.org/gnu/bison/bison-3.5.tar.gz | tar xz -C /bison/ --strip-components=1 && \
+cd bison && ./configure && make -j && make install && cd ..
 
 ENV DQCSIM_LIB /opt/python/cp36-cp36m/lib/libdqcsim.so
 ENV DQCSIM_INC /opt/python/cp36-cp36m/include
 ADD . .
-ENTRYPOINT ["bash", "-c", "${PYBIN}/python3 setup.py bdist_wheel && LD_LIBRARY_PATH=/opt/python/cp36-cp36m/lib ${PYBIN}/python3 -m auditwheel repair -w /io/dist target/python/dist/*.whl"]
+ENTRYPOINT ["bash", "-c", "\
+    ${PYBIN}/python3 setup.py bdist_wheel && \
+    LD_LIBRARY_PATH=/opt/python/cp36-cp36m/lib AUDITWHEEL_MOD_PYVER=py35 ${PYBIN}/python3 -m auditwheel repair -w /io/dist target/python/dist/*.whl && \
+    LD_LIBRARY_PATH=/opt/python/cp36-cp36m/lib AUDITWHEEL_MOD_PYVER=py36 ${PYBIN}/python3 -m auditwheel repair -w /io/dist target/python/dist/*.whl && \
+    LD_LIBRARY_PATH=/opt/python/cp36-cp36m/lib AUDITWHEEL_MOD_PYVER=py37 ${PYBIN}/python3 -m auditwheel repair -w /io/dist target/python/dist/*.whl && \
+    LD_LIBRARY_PATH=/opt/python/cp36-cp36m/lib AUDITWHEEL_MOD_PYVER=py38 ${PYBIN}/python3 -m auditwheel repair -w /io/dist target/python/dist/*.whl"]
