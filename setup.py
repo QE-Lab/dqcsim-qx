@@ -38,6 +38,11 @@ class build(_build):
         from plumbum import local, FG
 
         local['mkdir']("-p", output_dir)
+        if platform.system() == "Darwin":
+            # brew install flex bison
+            local.env["PATH"] = "/usr/local/opt/flex/bin/:/usr/local/opt/bison/bin:" + local.env["PATH"]
+            # brew install llvm
+            local.env["CXX"] = "/usr/local/opt/llvm/bin/clang++"
 
         with local.cwd(output_dir):
             if debug:
@@ -47,6 +52,16 @@ class build(_build):
             local['make']['-j']['4'] & FG
 
         _build.run(self)
+
+class bdist_wheel(_bdist_wheel):
+    def finalize_options(self):
+        _bdist_wheel.finalize_options(self)
+        self.root_is_pure = False
+
+    def get_tag(self):
+        python, abi, plat = _bdist_wheel.get_tag(self)
+        python, abi = 'py3', 'none'
+        return python, abi, plat
 
 class bdist(_bdist):
     def finalize_options(self):
@@ -103,6 +118,7 @@ setup(
 
     cmdclass = {
         'bdist': bdist,
+        'bdist_wheel': bdist_wheel,
         'build': build,
         'clean': clean,
         'egg_info': egg_info,
@@ -111,7 +127,6 @@ setup(
 
     setup_requires = [
         'plumbum',
-        'delocate; platform_system == "Darwin"',
     ],
 
     install_requires = [
