@@ -30,5 +30,7 @@ target_include_directories(
     dqcsbeqx PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-target_link_options(dqcsbeqx PUBLIC -lrt)
+if(NOT APPLE)
+  target_link_options(dqcsbeqx PUBLIC -lrt)
+endif()
 target_link_libraries(dqcsbeqx dqcsim qx)

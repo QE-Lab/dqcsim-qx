@@ -53,7 +53,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  set(CXX "Clang-omp++" PARENT_SCOPE)
+  set(CXX "clang-omp++")
   set(QX_CFLAGS "${QX_CFLAGS} -std=c++11 -Wall -Wfatal-errors -Wno-unused-local-typedef -DCG_BC -DQX_SPARSE_MV_MUL -D__BUILTIN_LINALG__ -msse4.2 -DUSE_OPENMP -Wno-reorder -Wno-unneeded-internal-declaration -Wno-unused-variable -Wno-unused-private-field -Wno-deprecated-register -Wno-unused-function")
 endif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 
