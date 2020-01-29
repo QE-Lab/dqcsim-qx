@@ -252,7 +252,7 @@ public:
       // Look for the first free QX qubit index.
       ssize_t qx_qubit = -1;
       for (size_t q = 0; q < num_qubits; q++) {
-        if (dqcs2qx.reverse_lookup(qx_qubit) < 0) {
+        if (dqcs2qx.reverse_lookup(q) < 0) {
           qx_qubit = q;
           break;
         }
