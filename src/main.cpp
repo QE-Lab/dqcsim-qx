@@ -107,6 +107,27 @@ static void construct_swap(std::vector<qx::gate*> &gates, std::vector<size_t> &&
 }
 
 /**
+ * RX gate constructor.
+ */
+static void construct_rx(std::vector<qx::gate*> &gates, std::vector<size_t> &&qubits, dqcs::ArbData &&data) {
+  gates.push_back(new qx::rx(qubits[0], data.get_arb_arg_as<double>(0)));
+}
+
+/**
+ * RY gate constructor.
+ */
+static void construct_ry(std::vector<qx::gate*> &gates, std::vector<size_t> &&qubits, dqcs::ArbData &&data) {
+  gates.push_back(new qx::ry(qubits[0], data.get_arb_arg_as<double>(0)));
+}
+
+/**
+ * RZ gate constructor.
+ */
+static void construct_rz(std::vector<qx::gate*> &gates, std::vector<size_t> &&qubits, dqcs::ArbData &&data) {
+  gates.push_back(new qx::rz(qubits[0], data.get_arb_arg_as<double>(0)));
+}
+
+/**
  * Measure Z constructor.
  */
 static void construct_measure_z(std::vector<qx::gate*> &gates, std::vector<size_t> &&qubits, dqcs::ArbData &&data) {
@@ -217,6 +238,9 @@ public:
     gatemap.with_unitary(construct_t_dag, dqcs::PredefinedGate::T_DAG, 0, epsilon);
     gatemap.with_unitary(construct_ctrl_phase_shift, dqcs::PredefinedGate::Phase, 1, epsilon);
     gatemap.with_unitary(construct_swap, dqcs::PredefinedGate::Swap, 0, epsilon);
+    gatemap.with_unitary(construct_rx, dqcs::PredefinedGate::RX, 0, epsilon);
+    gatemap.with_unitary(construct_ry, dqcs::PredefinedGate::RY, 0, epsilon);
+    gatemap.with_unitary(construct_rz, dqcs::PredefinedGate::RZ, 0, epsilon);
     gatemap.with_measure(construct_measure_z, dqcs::PauliBasis::Z, epsilon);
     gatemap.with_measure(construct_measure_x, dqcs::PauliBasis::X, epsilon);
     gatemap.with_measure(construct_measure_y, dqcs::PauliBasis::Y, epsilon);
