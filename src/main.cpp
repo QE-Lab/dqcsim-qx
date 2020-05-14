@@ -4,6 +4,7 @@
 #include <xpu.h>
 #include <xpu/runtime>
 #include <qx_representation.h>
+#include "json.hpp"
 #include "bimap.hpp"
 
 // Alias the dqcsim::wrap namespace to something shorter.
@@ -213,6 +214,9 @@ public:
   bool depolarizing_channel = false;
   double error_probability = 0.0;
 
+  // Epsilon for gate recognition.
+  double epsilon = 1.0e-6;
+
   /**
    * Initialization callback.
    */
@@ -220,9 +224,11 @@ public:
     dqcs::PluginState &state,
     dqcs::ArbCmdQueue &&cmds
   ) {
-    // TODO: parameter parsing
-    // epsilon, depolarizing_channel
-    double epsilon = 1.0e-6;
+
+    // Parse parameters.
+    for (; cmds.size() > 0; cmds.next()) {
+      handle_cmd(state, &cmds);
+    }
 
     // Construct the gatemap.
     gatemap.with_unitary(construct_h, dqcs::PredefinedGate::H, 0, epsilon);
@@ -425,17 +431,67 @@ public:
     simulate_pending();
   }
 
-  // TODO: arb to dump current state
+  /**
+   * Handles an ArbCmd. Used for both upstream, host, and init arbs alike.
+   */
+  dqcs::ArbData handle_cmd(
+    dqcs::PluginState &state,
+    const dqcs::Cmd *cmd
+  ) {
+    if (cmd->is_iface("qx")) {
+      if (cmd->is_oper("epsilon")) {
+        auto json = cmd->get_arb_json<nlohmann::json>();
+        epsilon = json["epsilon"];
+        DQCSIM_DEBUG("Set gate detection epsilon to %f", epsilon);
+      } else if (cmd->is_oper("error")) {
+        auto json = cmd->get_arb_json<nlohmann::json>();
+        std::string model = json["model"];
+        if (model == "none") {
+          depolarizing_channel = false;
+          DQCSIM_DEBUG("Disabled error modelling");
+        } else if (model == "depolarizing_channel") {
+          depolarizing_channel = true;
+          error_probability = json["error_probability"];
+          DQCSIM_DEBUG("Selected depolarizing channel error model with probability %f", error_probability);
+        } else {
+          throw std::runtime_error("Unknown error model requested: " + model + "!");
+        }
+      } else if (cmd->is_oper("dump_state")) {
+        DQCSIM_DEBUG("Simulating pending gates due to state dump request");
+        simulate_pending();
+        if (!qreg) {
+          throw std::runtime_error("No state register after simulate_pending(), this is weird!");
+        } else {
+          qreg->dump(false);
+        }
+      } else {
+        throw std::runtime_error("Unknown ArbCmd: qx." + cmd->get_oper() + "!");
+      }
+    }
+    return dqcs::ArbData();
+  }
+
+  /**
+   * Upstream or host ArbCmd callback.
+   */
+  dqcs::ArbData arbcmd(
+    dqcs::PluginState &state,
+    dqcs::ArbCmd cmd
+  ) {
+    return handle_cmd(state, &cmd);
+  }
 
 };
 
 int main(int argc, char *argv[]) {
   QxPlugin qxPlugin;
-  return dqcs::Plugin::Backend("qx", "JvS", "0.0.3")
+  return dqcs::Plugin::Backend("qx", "JvS", "0.0.4")
     .with_initialize(&qxPlugin, &QxPlugin::initialize)
     .with_allocate(&qxPlugin, &QxPlugin::allocate)
     .with_free(&qxPlugin, &QxPlugin::free)
     .with_gate(&qxPlugin, &QxPlugin::gate)
     .with_drop(&qxPlugin, &QxPlugin::drop)
+    .with_host_arb(&qxPlugin, &QxPlugin::arbcmd)
+    .with_upstream_arb(&qxPlugin, &QxPlugin::arbcmd)
     .run(argc, argv);
 }
