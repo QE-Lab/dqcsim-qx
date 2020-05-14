@@ -1,5 +1,3 @@
-# WORK IN PROGRESS
-
 # DQCsim QX backend
 
 [![PyPi](https://badgen.net/pypi/v/dqcsim-qx)](https://pypi.org/project/dqcsim-qx/)
