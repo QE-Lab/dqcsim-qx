@@ -485,7 +485,7 @@ public:
 
 int main(int argc, char *argv[]) {
   QxPlugin qxPlugin;
-  return dqcs::Plugin::Backend("qx", "JvS", "0.0.4")
+  return dqcs::Plugin::Backend("qx", "JvS", "0.0.5")
     .with_initialize(&qxPlugin, &QxPlugin::initialize)
     .with_allocate(&qxPlugin, &QxPlugin::allocate)
     .with_free(&qxPlugin, &QxPlugin::free)
